@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Install the sqlx-cli tool with:
-# cargo install --version=0.5.7 sqlx-cli --no-default-features --features postgres
+# cargo install --version=0.6 sqlx-cli --no-default-features --features postgres
 # and make sure you start postgres before creating the database and running migrations.
  
 set -Euo pipefail
