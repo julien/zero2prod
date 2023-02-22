@@ -10,23 +10,16 @@ pub struct FormData {
     name: String,
 }
 
-pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> HttpResponse {
-    let request_id = Uuid::new_v4();
-
-    let request_span = tracing::info_span!(
-        "adding a new subscriber",
-        %request_id,
+#[tracing::instrument(
+    name = "adding a new subscriber",
+    skip(form, pool),
+    fields(
+        request_id = %Uuid::new_v4(),
         subscriber_email = %form.email,
         subscriber_name = %form.name
-    );
-
-    // Using "enter" in an async function is a recipe for disaster,
-    // this is just here as an example.
-    let _request_span_guard = request_span.enter();
-
-    // We don't call "enter" on query_span
-    // "instrument" takes care of it at the right time
-    // in the query future lifetime
+    )
+)]
+pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> HttpResponse {
     let query_span = tracing::info_span!("saving new subscriber details in the database");
 
     match sqlx::query!(
