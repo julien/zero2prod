@@ -1,6 +1,7 @@
 use tracing::{subscriber::set_global_default, Subscriber};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
+use tracing_subscriber::fmt::MakeWriter;
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 
 ///
@@ -13,7 +14,17 @@ use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 /// We need to explicitly call out that the returned subscriber is
 /// `Send` and `Sync` to make it possible to pass it to `init_subscriber`
 /// later on.
-pub fn get_subscriber(name: String, env_filter: String) -> impl Subscriber + Send + Sync {
+pub fn get_subscriber<Sink>(
+    name: String,
+    env_filter: String,
+    sink: Sink,
+) -> impl Subscriber + Send + Sync
+where
+    // The means Sink implements the MakeWriter trait
+    // for all choices of the lifetime parameter "a"
+    // See http://doc.rust-lang.org/nomicon/hrtb.html.
+    Sink: for<'a> MakeWriter<'a> + Send + Sync + 'static,
+{
     // Log all spans and info-level or above
     // if the RUST_LOG environment variable has not been set.
     let env_filter =
