@@ -22,7 +22,12 @@ async fn main() -> Result<(), std::io::Error> {
         .email_client
         .sender()
         .expect("invalid sender email address");
-    let email_client = EmailClient::new(configuration.email_client.base_url, sender_email);
+
+    let email_client = EmailClient::new(
+        configuration.email_client.base_url,
+        sender_email,
+        configuration.email_client.authorization_token,
+    );
 
     let address = format!(
         "{}:{}",
