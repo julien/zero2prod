@@ -6,19 +6,26 @@ use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
 use sqlx::ConnectOptions;
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub email_client: EmailClientSettings,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
+pub struct ApplicationSettings {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    pub port: u16,
+    pub host: String,
+}
+
+#[derive(serde::Deserialize, Clone)]
 pub struct DatabaseSettings {
     pub username: String,
     pub password: Secret<String>,
-    pub port: u16,
     #[serde(deserialize_with = "deserialize_number_from_string")]
+    pub port: u16,
     pub host: String,
     pub database_name: String,
     pub require_ssl: bool,
@@ -41,20 +48,15 @@ impl DatabaseSettings {
     }
 
     pub fn with_db(&self) -> PgConnectOptions {
+        println!("HERE {}", &self.database_name);
+
         let mut options = self.without_db().database(&self.database_name);
-        options.log_statements(tracing_log::log::LevelFilter::Trace);
+        options.log_statements(tracing_log::log::LevelFilter::Debug);
         options
     }
 }
 
-#[derive(serde::Deserialize)]
-pub struct ApplicationSettings {
-    #[serde(deserialize_with = "deserialize_number_from_string")]
-    pub port: u16,
-    pub host: String,
-}
-
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct EmailClientSettings {
     pub base_url: String,
     pub sender_email: String,
