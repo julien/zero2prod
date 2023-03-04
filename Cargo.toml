@@ -27,6 +27,7 @@ secrecy = { version = "0.8", features = ["serde"] }
 tracing-actix-web = "0.7"
 unicode-segmentation = "1"
 validator = "0.16"
+serde-aux = "4"
 
 [dependencies.reqwest]
 version = "0.11"
