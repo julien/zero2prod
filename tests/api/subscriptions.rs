@@ -35,14 +35,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
 
     for (invalid_body, error_message) in test_cases {
         // Act
-        let response = client
-            .post(&format!("{}/subscriptions", &app.address))
-            .header("Content-Type", "application/x-www-urlencoded")
-            .body(invalid_body)
-            .send()
-            .await
-            .expect("failed to execute request");
-
+        let response = app.post_subscriptions(invalid_body.into()).await;
         // Assert
         assert_eq!(
             400,
@@ -67,13 +60,7 @@ async fn subscribe_returns_a_200_when_fields_are_present_but_empty() {
 
     for (body, description) in test_cases {
         // Act
-        let response = client
-            .post(&format!("{}/subscriptions", &app.address))
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(body)
-            .send()
-            .await
-            .expect("failed to execute request.");
+        let response = app.post_subscriptions(body.into()).await;
 
         // Assert
         assert_eq!(
