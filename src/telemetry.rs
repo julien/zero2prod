@@ -17,7 +17,7 @@ use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 pub fn get_subscriber<Sink>(
     name: String,
     env_filter: String,
-    sink: Sink,
+    _sink: Sink,
 ) -> impl Subscriber + Send + Sync
 where
     // The means Sink implements the MakeWriter trait

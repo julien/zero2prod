@@ -2,6 +2,7 @@ use crate::email_client::EmailClient;
 use actix_web::{web, HttpResponse};
 use chrono::Utc;
 use sqlx::PgPool;
+#[allow(unused_imports)]
 use tracing::Instrument;
 use uuid::Uuid;
 
