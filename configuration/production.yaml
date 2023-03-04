@@ -1,6 +1,7 @@
 application:
   host: 127.0.0.1
-
+database:
+  require_ssl: true
 email_client:
   base_url: "https://api.postmark.com"
   sender_email: "jcastelain@loyal.guru"
