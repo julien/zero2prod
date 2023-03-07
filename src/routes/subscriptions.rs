@@ -178,7 +178,6 @@ pub async fn store_token(
     Ok(())
 }
 
-// A wrapper around sqlx::Error
 pub struct StoreTokenError(sqlx::Error);
 
 impl std::fmt::Display for StoreTokenError {
