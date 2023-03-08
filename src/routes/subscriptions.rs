@@ -42,21 +42,37 @@ pub async fn subscribe(
     base_url: web::Data<ApplicationBaseUrl>,
 ) -> Result<HttpResponse, SubscribeError> {
     let new_subscriber = form.0.try_into().map_err(SubscribeError::ValidationError)?;
-    let mut transaction = pool
-        .begin()
-        .await
-        .map_err(|e| SubscribeError::UnexpectedError(Box::new(e)))?;
+    let mut transaction = pool.begin().await.map_err(|e| {
+        SubscribeError::UnexpectedError(
+            Box::new(e),
+            "failed to acquire a postgres connection from the pool".into(),
+        )
+    })?;
     let subscriber_id = insert_subsriber(&mut transaction, &new_subscriber)
         .await
-        .map_err(|e| SubscribeError::UnexpectedError(Box::new(e)))?;
+        .map_err(|e| {
+            SubscribeError::UnexpectedError(
+                Box::new(e),
+                "failed to insert a new subscriber into the database".into(),
+            )
+        })?;
     let subscription_token = generate_subscription_token();
     store_token(&mut transaction, subscriber_id, &subscription_token)
         .await
-        .map_err(|e| SubscribeError::UnexpectedError(Box::new(e)))?;
-    transaction
-        .commit()
-        .await
-        .map_err(|e| SubscribeError::UnexpectedError(Box::new(e)))?;
+        .map_err(|e| {
+            SubscribeError::UnexpectedError(
+                Box::new(e),
+                "failed to store the confirmation token for a new \
+                subscriber"
+                    .into(),
+            )
+        })?;
+    transaction.commit().await.map_err(|e| {
+        SubscribeError::UnexpectedError(
+            Box::new(e),
+            "failed to commit sql transation to store a new subscriber".into(),
+        )
+    })?;
     send_confirmation_email(
         &email_client,
         new_subscriber,
@@ -64,7 +80,9 @@ pub async fn subscribe(
         &subscription_token,
     )
     .await
-    .map_err(|e| SubscribeError::UnexpectedError(Box::new(e)))?;
+    .map_err(|e| {
+        SubscribeError::UnexpectedError(Box::new(e), "failed to send a confirmation email".into())
+    })?;
     Ok(HttpResponse::Ok().finish())
 }
 
@@ -72,10 +90,8 @@ pub async fn subscribe(
 pub enum SubscribeError {
     #[error("{0}")]
     ValidationError(String),
-    // transparent delegates both Display and source implementation
-    // to the type wrapped by UnexpectedError
-    #[error(transparent)]
-    UnexpectedError(#[from] Box<dyn std::error::Error>),
+    #[error("{1}")]
+    UnexpectedError(#[source] Box<dyn std::error::Error>, String),
 }
 
 impl std::fmt::Debug for SubscribeError {
@@ -88,7 +104,7 @@ impl ResponseError for SubscribeError {
     fn status_code(&self) -> StatusCode {
         match self {
             SubscribeError::ValidationError(_) => StatusCode::BAD_REQUEST,
-            SubscribeError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            SubscribeError::UnexpectedError(_, _) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
