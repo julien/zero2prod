@@ -132,3 +132,7 @@ async fn configure_database(config: &DatabaseSettings) -> PgPool {
 
     connection_pool
 }
+
+struct ConfirmedSubscriber {
+    email: String,
+}
