@@ -10,3 +10,6 @@ export DATABASE_URL=postgres://postgres:password@127.0.0.1:5432/newsletter
 
 sqlx database create
 sqlx migrate run
+
+# When running tests you might need to use ulimit -n 102400
+# to increase the limit of files that can be open.
