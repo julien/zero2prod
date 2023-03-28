@@ -104,6 +104,17 @@ impl TestApp {
             .await
             .unwrap()
     }
+
+    pub async fn get_admin_dashboard(&self) -> String {
+        self.api_client
+            .get(&format!("{}/admin/dashboard", &self.address))
+            .send()
+            .await
+            .expect("failed to execute request")
+            .text()
+            .await
+            .unwrap()
+    }
 }
 
 pub async fn spawn_app() -> TestApp {
@@ -169,10 +180,6 @@ async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .expect("failed to migrate the database");
 
     connection_pool
-}
-
-struct ConfirmedSubscriber {
-    email: String,
 }
 
 pub struct TestUser {
