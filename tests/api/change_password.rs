@@ -95,3 +95,35 @@ async fn current_password_must_be_valid() {
     let html_page = app.get_change_password_html().await;
     assert!(html_page.contains("<p><i>the current password is incorrect</i></p>"));
 }
+
+#[tokio::test]
+async fn the_password_length_should_be_valid() {
+    // Arrange
+    let app = spawn_app().await;
+    let new_password = "admin1234".to_string();
+
+    // Act - Part 1 - Login
+    app.post_login(&serde_json::json!({
+        "username": &app.test_user.username,
+        "password": &app.test_user.password,
+    }))
+    .await;
+
+    // Act - Part 2 - Try to change password
+    let response = app
+        .post_change_password(&serde_json::json!({
+            "current_password": &app.test_user.password,
+            "new_password": &new_password,
+            "new_password_check": &new_password,
+        }))
+        .await;
+
+    // Assert
+    assert_is_redirect_to(&response, "/admin/password");
+
+    // Act - Part 3 - Follow the redirect
+    let html_page = app.get_change_password_html().await;
+    assert!(html_page.contains(
+        "<p><i>the password must contain at least 13 characters and at most 127 characters</i></p>"
+    ));
+}

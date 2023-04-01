@@ -26,13 +26,23 @@ pub async fn change_password(
     let user_id = user_id.unwrap();
 
     // Secrect<String> does not implement Eq
-    if form.new_password.expose_secret() != form.new_password_check.expose_secret() {
+    let new_password = form.new_password.expose_secret();
+    if new_password.len() < 12 || new_password.len() > 128 {
+        FlashMessage::error(
+            "the password must contain at least 13 characters and at most 127 characters",
+        )
+        .send();
+        return Ok(see_other("/admin/password"));
+    }
+
+    if new_password != form.new_password_check.expose_secret() {
         FlashMessage::error(
             "you entered two different new passwords - the field values must match",
         )
         .send();
         return Ok(see_other("/admin/password"));
     }
+
     let username = get_username(user_id, &pool).await.map_err(e500)?;
     let credentials = Credentials {
         username,
