@@ -17,7 +17,6 @@ pub async fn change_password_form(
     for m in flash_messages.iter() {
         writeln!(msg_html, "<p><i>{}</i></p>", m.content()).unwrap();
     }
-    println!("get: {msg_html}");
 
     Ok(HttpResponse::Ok()
         .content_type(ContentType::html())
